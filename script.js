@@ -106,7 +106,24 @@ app.get("/playlists", async (req,res) => {
         "Authorization": `Bearer ${req.session.access_token}`
     }
         const response = await axios.get(`${api_base_url}me/playlists`, { headers });
-        res.json(response.data);
+        const playlists = response.data;
+
+
+        const parsedData = playlists.items.map(playlist => ({
+            name: playlist.name,
+            description: playlist.description,
+            tracksCount: playlist.tracks.total,
+            url: playlist.external_urls.spotify
+        }));
+
+        // Save the parsed data in the session to access it in the HTML page
+        req.session.playlists = parsedData;
+        // Send the user to the new HTML page
+        res.sendFile(path.join(__dirname, 'playlists.html'));
+
+        
+        //res.json(parsedData);
+        //res.json(response.data);
 })
 
 app.get("/refresh-token", async (req,res) => {
@@ -135,7 +152,70 @@ app.get("/refresh-token", async (req,res) => {
     res.redirect("/playlists")
 })
 
+app.get('/api/playlists', (req, res) => {
+    if (!req.session.playlists) {
+        return res.status(404).json({ error: 'No playlists found' });
+    }
+    res.json(req.session.playlists);
+});
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
+// // Sample JSON data
+// const sampleData = [
+//     {
+//         trackName: "Track 1",
+//         artistName: "Artist 1",
+//         albumName: "Album 1",
+//         trackUrl: "https://open.spotify.com/track/1"
+//     },
+//     {
+//         trackName: "Track 2",
+//         artistName: "Artist 2",
+//         albumName: "Album 2",
+//         trackUrl: "https://open.spotify.com/track/2"
+//     },
+//     // Add more sample data as needed
+// ];
+
+// // Function to inject JSON data into the table
+// function injectDataIntoTable(data) {
+//     const tableBody = document.getElementById('tracksTable').getElementsByTagName('tbody')[0];
+
+//     // Clear existing rows
+//     tableBody.innerHTML = '';
+
+//     // Loop through the data and create table rows
+//     data.forEach(item => {
+//         const row = document.createElement('tr');
+
+//         const trackNameCell = document.createElement('td');
+//         trackNameCell.textContent = item.trackName;
+//         row.appendChild(trackNameCell);
+
+//         const artistNameCell = document.createElement('td');
+//         artistNameCell.textContent = item.artistName;
+//         row.appendChild(artistNameCell);
+
+//         const albumNameCell = document.createElement('td');
+//         albumNameCell.textContent = item.albumName;
+//         row.appendChild(albumNameCell);
+
+//         const trackUrlCell = document.createElement('td');
+//         const trackUrlLink = document.createElement('a');
+//         trackUrlLink.href = item.trackUrl;
+//         trackUrlLink.textContent = "Listen";
+//         trackUrlLink.target = "_blank";
+//         trackUrlCell.appendChild(trackUrlLink);
+//         row.appendChild(trackUrlCell);
+
+//         tableBody.appendChild(row);
+//     });
+// }
+
+// // Call the function with sample data
+// injectDataIntoTable(sampleData);

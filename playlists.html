@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>yo</title>
+    <link href="style.css" rel="stylesheet" type="text/css" />
+
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #3ffb26;
+            text-align: left;
+        }
+        th {
+            background-color: #086118;
+        }
+    </style>
+
+  </head>
+
+<body>
+
+    <h1>Your Playlists</h1>
+    <ul id="playlist-list"></ul>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/api/playlists')
+                .then(response => response.json())
+                .then(data => {
+                    const playlistList = document.getElementById('playlist-list');
+                    data.forEach(playlist => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = `${playlist.name} - ${playlist.description} (${playlist.tracksCount} tracks)`;
+                        playlistList.appendChild(listItem);
+                    });
+                });
+        });
+    </script>
+
+</body>
+
+</html>
